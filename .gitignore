@@ -1,0 +1,18 @@
+# Virtual Environment
+myenv/
+venv/
+
+# Model files
+*.pkl
+*.joblib
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Jupyter Notebook checkpoints
+Lib
+DATASETS/
