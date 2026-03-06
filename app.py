@@ -41,10 +41,10 @@ def fetch_movie_details(movie_id):
 # Load Data & Recreate Similarity
 @st.cache_resource
 def load_data():
-    # Load only movies.pkl (small file)
-    movies = pickle.load(open('movies.pkl', 'rb'))
+    # Change this line:
+    movies = joblib.load('movies.pkl')  # ← joblib instead of pickle!
     
-    # Recreate similarity at runtime (no need for similarity.pkl!)
+    # Recreate similarity at runtime
     cv = CountVectorizer(max_features=5000, stop_words='english')
     vectors = cv.fit_transform(movies['tags'])
     sim = cosine_similarity(vectors)
