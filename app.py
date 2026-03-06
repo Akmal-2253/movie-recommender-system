@@ -1,12 +1,15 @@
 import streamlit as st
 import joblib
 import requests
+import pickle
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-#  API Key & Placeholder 
+# API Key & Placeholder 
 API_KEY = "f03e5511ca56e916189139271ec362e9"
 NO_POSTER = "https://via.placeholder.com/500x750?text=No+Poster"
 
-# Minimal CSS (only what Streamlit truly can't do) 
+# Minimal CSS
 st.markdown("""
     <style>
     .movie-title { text-align: center; font-size: 13px; font-weight: bold; margin-top: 8px; min-height: 40px; }
@@ -17,7 +20,6 @@ st.markdown("""
 
 # Page Config 
 st.set_page_config(page_title="Movie Recommender", page_icon="🎬", layout="wide")
-
 
 # API Function 
 def fetch_movie_details(movie_id):
@@ -36,6 +38,21 @@ def fetch_movie_details(movie_id):
     except:
         return NO_POSTER, "N/A", "No overview available.", "N/A", "N/A"
 
+# Load Data & Recreate Similarity
+@st.cache_resource
+def load_data():
+    # Load only movies.pkl (small file)
+    movies = pickle.load(open('movies.pkl', 'rb'))
+    
+    # Recreate similarity at runtime (no need for similarity.pkl!)
+    cv = CountVectorizer(max_features=5000, stop_words='english')
+    vectors = cv.fit_transform(movies['tags'])
+    sim = cosine_similarity(vectors)
+    
+    return movies, sim
+
+movies_df, similarity = load_data()
+movies_list = movies_df['title'].values
 
 # Recommend Function 
 def recommend(movie):
@@ -58,25 +75,12 @@ def recommend(movie):
         })
     return results
 
-
-#  Load Data 
-@st.cache_resource
-def load_data():
-    movies = joblib.load('movies.pkl')
-    sim = joblib.load('similarity.pkl')
-    return movies, sim
-
-movies_df, similarity = load_data()
-movies_list = movies_df['title'].values
-
-
-#  Header 
+# Header 
 st.title("🎬 Movie Recommender System")
 st.caption("Select a movie and discover similar ones you'll love")
 st.divider()
 
-
-#  Selected Movie Info 
+# Selected Movie Info 
 col_select, col_info = st.columns([1, 2])
 
 with col_select:
@@ -94,10 +98,9 @@ with col_info:
         st.subheader(f"{selected_movie_name} ({release})")
         st.metric(label="TMDB Rating", value=f"⭐ {rating}/10")
         st.caption(f"🎭 Genres: {genres}")
-        st.info(overview[:200] + "...")
+        st.info(str(overview[:200]) + "...")
 
-
-#  Recommendations 
+# Recommendations 
 if recommend_btn:
     st.divider()
     st.subheader("🍿 Recommended Movies")
