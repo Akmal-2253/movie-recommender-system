@@ -3,7 +3,9 @@ myenv/
 venv/
 
 # Model files
-*.pkl
+*similarity.pkl
+*DATASETS/similarity.pkl
+
 *.joblib
 
 # Python cache
